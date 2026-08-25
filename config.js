@@ -1,2 +1,2 @@
-const SUPABASE_URL = 'COLE_SUA_URL_AQUI';
-const SUPABASE_KEY = 'COLE_SUA_CHAVE_AQUI';
+const SUPABASE_URL = 'https://tvezkcyhfupjzfwgjuze.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_tPauTuj7i3OJVJNq-Wey8w_SzmL1pQW';
