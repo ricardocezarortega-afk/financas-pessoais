@@ -1,88 +1,132 @@
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-let currentUser = null;
-
-function renderAuth() {
-  document.getElementById('root').innerHTML = `
-    <div class="auth-page">
-      <div class="auth-box">
-        <div class="auth-logo">
-          <div class="auth-logo-icon">💰</div>
-          <h1>FinançasPro</h1>
-          <p>Controle financeiro pessoal</p>
-        </div>
-        <div class="auth-tabs">
-          <button class="auth-tab active" onclick="switchTab('login')">Entrar</button>
-          <button class="auth-tab" onclick="switchTab('register')">Criar conta</button>
-        </div>
-        <div id="auth-form">
-          <div class="form-group">
-            <label class="form-label">E-mail</label>
-            <input class="form-control" type="email" id="auth-email" placeholder="seu@email.com"/>
-          </div>
-          <div class="form-group" id="auth-name-group" style="display:none">
-            <label class="form-label">Nome completo</label>
-            <input class="form-control" type="text" id="auth-name" placeholder="Seu nome"/>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Senha</label>
-            <input class="form-control" type="password" id="auth-password" placeholder="••••••••"/>
-          </div>
-          <button class="btn-auth" id="auth-btn" onclick="doLogin()">Entrar</button>
-          <div id="auth-msg"></div>
-        </div>
-      </div>
-    </div>`;
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#00C48C;--green-light:#E6FAF4;--green-dark:#00956B;
+  --red:#FF5C5C;--red-light:#FFF0F0;
+  --blue:#3B82F6;--blue-light:#EFF6FF;
+  --amber:#F59E0B;--amber-light:#FFFBEB;
+  --purple:#8B5CF6;--purple-light:#F5F3FF;
+  --bg:#F7F8FA;--white:#FFFFFF;
+  --text:#1A1D23;--text2:#6B7280;--text3:#9CA3AF;
+  --border:#E5E7EB;--border2:#F3F4F6;
+  --shadow:0 1px 4px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);
+  --radius:12px;--radius-sm:8px;
 }
-
-let authMode = 'login';
-function switchTab(mode) {
-  authMode = mode;
-  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&mode==='login')||(i===1&&mode==='register')));
-  document.getElementById('auth-name-group').style.display = mode==='register' ? 'block' : 'none';
-  document.getElementById('auth-btn').textContent = mode==='register' ? 'Criar conta' : 'Entrar';
-  document.getElementById('auth-btn').onclick = mode==='register' ? doRegister : doLogin;
-  document.getElementById('auth-msg').innerHTML = '';
-}
-
-async function doLogin() {
-  const email = document.getElementById('auth-email').value.trim();
-  const password = document.getElementById('auth-password').value;
-  if(!email||!password){showAuthMsg('Preencha todos os campos','error');return;}
-  document.getElementById('auth-btn').textContent = 'Entrando...';
-  const {data,error} = await sb.auth.signInWithPassword({email,password});
-  if(error){showAuthMsg(error.message==='Invalid login credentials'?'E-mail ou senha incorretos':error.message,'error');document.getElementById('auth-btn').textContent='Entrar';return;}
-  currentUser = data.user;
-  initApp();
-}
-
-async function doRegister() {
-  const email = document.getElementById('auth-email').value.trim();
-  const password = document.getElementById('auth-password').value;
-  const name = document.getElementById('auth-name').value.trim();
-  if(!email||!password||!name){showAuthMsg('Preencha todos os campos','error');return;}
-  if(password.length<6){showAuthMsg('Senha deve ter ao menos 6 caracteres','error');return;}
-  document.getElementById('auth-btn').textContent = 'Criando conta...';
-  const {data,error} = await sb.auth.signUp({email,password,options:{data:{full_name:name}}});
-  if(error){showAuthMsg(error.message,'error');document.getElementById('auth-btn').textContent='Criar conta';return;}
-  currentUser = data.user;
-  showAuthMsg('Conta criada! Entrando...','success');
-  setTimeout(()=>initApp(),1000);
-}
-
-function showAuthMsg(msg,type) {
-  document.getElementById('auth-msg').innerHTML = `<div class="auth-msg ${type}">${msg}</div>`;
-}
-
-async function checkAuth() {
-  const {data:{session}} = await sb.auth.getSession();
-  if(session){currentUser=session.user;initApp();}
-  else{renderAuth();}
-}
-
-async function logout() {
-  await sb.auth.signOut();
-  currentUser = null;
-  renderAuth();
-}
-
-window.addEventListener('load', checkAuth);
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+.auth-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0F172A 0%,#1E293B 100%)}
+.auth-box{background:var(--white);border-radius:20px;padding:40px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.auth-logo{text-align:center;margin-bottom:32px}
+.auth-logo-icon{width:56px;height:56px;background:var(--green);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:28px;color:#fff}
+.auth-logo h1{font-size:22px;font-weight:700;color:var(--text)}
+.auth-logo p{font-size:13px;color:var(--text2);margin-top:4px}
+.auth-tabs{display:flex;gap:4px;background:var(--bg);border-radius:10px;padding:4px;margin-bottom:24px}
+.auth-tab{flex:1;padding:8px;border-radius:8px;border:none;background:none;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;transition:.15s}
+.auth-tab.active{background:var(--white);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+.form-control{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;outline:none;transition:.15s;background:var(--white)}
+.form-control:focus{border-color:var(--green)}
+.btn-auth{width:100%;padding:12px;background:var(--green);color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:600;cursor:pointer;transition:.15s;margin-top:8px}
+.btn-auth:hover{background:var(--green-dark)}
+.auth-msg{font-size:13px;text-align:center;padding:10px;border-radius:var(--radius-sm);margin-top:12px}
+.auth-msg.error{background:var(--red-light);color:var(--red)}
+.auth-msg.success{background:var(--green-light);color:var(--green-dark)}
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:240px;min-width:240px;background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.sidebar-logo{padding:20px 16px 16px;border-bottom:1px solid var(--border)}
+.sidebar-logo-wrap{display:flex;align-items:center;gap:10px}
+.sidebar-logo-icon{width:34px;height:34px;background:var(--green);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px}
+.sidebar-logo-name{font-size:15px;font-weight:700;color:var(--text)}
+.sidebar-user{padding:12px 16px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text2)}
+.sidebar-user strong{display:block;color:var(--text);font-size:13px}
+.nav{padding:8px}
+.nav-section{font-size:10px;color:var(--text3);padding:10px 8px 4px;letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--radius-sm);cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;margin-bottom:1px;transition:.12s}
+.nav-item:hover{background:var(--bg);color:var(--text)}
+.nav-item.active{background:var(--green-light);color:var(--green-dark)}
+.nav-item i{font-size:18px}
+.sidebar-footer{margin-top:auto;padding:12px 16px;border-top:1px solid var(--border)}
+.btn-logout{width:100%;padding:8px;border:1px solid var(--border);background:none;border-radius:var(--radius-sm);font-size:13px;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-logout:hover{background:var(--red-light);color:var(--red);border-color:var(--red)}
+.main{flex:1;overflow-y:auto;background:var(--bg)}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.topbar-title{font-size:16px;font-weight:700}
+.topbar-actions{display:flex;align-items:center;gap:8px}
+.btn{padding:8px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid var(--border);background:var(--white);color:var(--text);display:inline-flex;align-items:center;gap:6px;transition:.12s}
+.btn:hover{background:var(--bg)}
+.btn-green{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-green:hover{background:var(--green-dark)}
+.btn-red{background:var(--red);color:#fff;border-color:var(--red)}
+.content{padding:20px 24px}
+.fab{position:fixed;bottom:28px;right:28px;width:56px;height:56px;border-radius:50%;background:var(--green);color:#fff;border:none;font-size:28px;cursor:pointer;box-shadow:0 4px 20px rgba(0,196,140,.4);display:flex;align-items:center;justify-content:center;z-index:50;transition:.15s}
+.fab:hover{background:var(--green-dark);transform:scale(1.05)}
+.cards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.card{background:var(--white);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow)}
+.card-label{font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.card-value{font-size:24px;font-weight:700;letter-spacing:-.5px}
+.card-sub{font-size:12px;color:var(--text2);margin-top:4px;display:flex;align-items:center;gap:4px}
+.card-sub.up{color:var(--green-dark)}
+.card-sub.down{color:var(--red)}
+.card-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:10px}
+.icon-green{background:var(--green-light);color:var(--green-dark)}
+.icon-red{background:var(--red-light);color:var(--red)}
+.icon-blue{background:var(--blue-light);color:var(--blue)}
+.icon-amber{background:var(--amber-light);color:var(--amber)}
+.icon-purple{background:var(--purple-light);color:var(--purple)}
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.chart-card{background:var(--white);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+.chart-title{font-size:14px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.chart-title span{font-size:12px;color:var(--text2);font-weight:400}
+.table-card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:20px}
+.table-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.table-title{font-size:14px;font-weight:700}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;color:var(--text2);font-weight:600;padding:10px 20px;text-align:left;border-bottom:1px solid var(--border);background:var(--bg);text-transform:uppercase;letter-spacing:.04em}
+td{font-size:13px;padding:12px 20px;border-bottom:1px solid var(--border);color:var(--text)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg)}
+.empty-row{text-align:center;color:var(--text3);padding:40px!important}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:600}
+.badge-green{background:var(--green-light);color:var(--green-dark)}
+.badge-red{background:var(--red-light);color:var(--red)}
+.badge-amber{background:var(--amber-light);color:var(--amber)}
+.badge-blue{background:var(--blue-light);color:var(--blue)}
+.badge-gray{background:var(--border);color:var(--text2)}
+.badge-purple{background:var(--purple-light);color:var(--purple)}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px}
+.modal{background:var(--white);border-radius:16px;padding:28px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.2)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.modal-title{font-size:17px;font-weight:700}
+.modal-close{width:32px;height:32px;border:none;background:var(--bg);border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;color:var(--text2)}
+.modal-close:hover{background:var(--border)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-group{margin-bottom:14px}
+.form-group .form-label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+.form-group .form-control{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;outline:none;transition:.15s}
+.form-group .form-control:focus{border-color:var(--green)}
+select.form-control{cursor:pointer}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+.tipo-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.tipo-btn{padding:16px;border:2px solid var(--border);border-radius:var(--radius);cursor:pointer;text-align:center;background:var(--white);transition:.15s}
+.tipo-btn:hover{border-color:var(--green);background:var(--green-light)}
+.tipo-btn.selected{border-color:var(--green);background:var(--green-light)}
+.tipo-btn i{font-size:28px;display:block;margin-bottom:6px}
+.tipo-btn span{font-size:13px;font-weight:600}
+.progress-bar{height:8px;border-radius:4px;background:var(--border);overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;border-radius:4px;transition:.3s}
+.meta-card{background:var(--white);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);margin-bottom:12px}
+.meta-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.meta-title{font-size:14px;font-weight:600}
+.meta-values{font-size:12px;color:var(--text2)}
+.conta-card{background:var(--white);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.conta-name{font-size:14px;font-weight:600}
+.conta-type{font-size:12px;color:var(--text2)}
+.conta-saldo-value{font-size:18px;font-weight:700}
+.conta-saldo-label{font-size:11px;color:var(--text2)}
+.loading{display:flex;align-items:center;justify-content:center;padding:60px;color:var(--text2);gap:10px;font-size:14px}
+.spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.dre-row-total{background:#f0f4ff;font-weight:600}
+.dre-row-result{background:#e8f5e9}
+.dre-indent{padding-left:32px!important;color:var(--text2)}
+@media(max-width:768px){.sidebar{display:none}.cards-grid{grid-template-columns:1fr 1fr}.charts-row{grid-template-columns:1fr}.form-row{grid-template-columns:1fr}.fab{bottom:20px;right:20px}}
+@media(max-width:480px){.cards-grid{grid-template-columns:1fr}.content{padding:14px}}
