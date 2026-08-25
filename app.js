@@ -1,6 +1,5 @@
 // ====== UTILS ======
 function fmt(v,sign=false){
-  const n=Number(v||0);
   const s=n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   return sign?(n>=0?'+ R$ '+s:'- R$ '+Math.abs(n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})):'R$ '+s;
 }
