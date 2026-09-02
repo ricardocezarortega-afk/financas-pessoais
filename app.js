@@ -211,7 +211,7 @@ function updateFilter(){
 
 function getPeriodo(){
   const ini=filterAno+'-'+String(filterMes).padStart(2,'0')+'-01';
-  const fim=filterAno+'-'+String(filterMes).padStart(2,'0')+'-31';
+  const fim=filterAno+'-'+String(filterMes).padStart(2,'0')+'-'+new Date(filterAno,filterMes,0).getDate();
   return{ini,fim};
 }
 
@@ -330,7 +330,7 @@ async function renderChartMensal(){
   const recArr=[],despArr=[];
   for(const {mes,ano} of meses){
     const ini=ano+'-'+String(mes).padStart(2,'0')+'-01';
-    const fim=ano+'-'+String(mes).padStart(2,'0')+'-31';
+    const fim=ano+'-'+String(mes).padStart(2,'0')+'-'+new Date(ano,mes,0).getDate();
     const {data:l}=await sb.from('lancamentos').select('tipo,valor,status').eq('user_id',uid()).gte('data',ini).lte('data',fim);
     recArr.push((l||[]).filter(x=>x.tipo==='receita'&&x.status==='recebido').reduce((s,x)=>s+Number(x.valor),0));
     despArr.push((l||[]).filter(x=>x.tipo==='despesa'&&x.status!=='cancelado').reduce((s,x)=>s+Number(x.valor),0));
